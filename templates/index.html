@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogicFlow – Write Logic. See the Flow.</title>
+  <meta name="description" content="LogicFlow: An English-like programming language with automatic flowchart generation and step-by-step execution." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">⟨LF⟩</span>
+        <div class="logo-text">
+          <span class="logo-title">LogicFlow</span>
+          <span class="logo-sub">Write Logic. See the Flow.</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-center">
+      <select id="exampleSelect" class="example-select">
+        <option value="">📂 Load Example…</option>
+      </select>
+    </div>
+    <div class="header-right">
+      <button id="btnNew" class="btn btn-ghost">🆕 New</button>
+      <button id="btnReset" class="btn btn-ghost">🔄 Reset</button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="workspace">
+    <!-- LEFT: Editor -->
+    <section class="panel panel-editor">
+      <div class="panel-header">
+        <span class="panel-title">📝 Source Editor</span>
+        <div class="editor-controls">
+          <button id="btnAnalyze" class="btn btn-secondary">🔍 Analyze</button>
+          <button id="btnRun" class="btn btn-primary">▶ Run</button>
+          <button id="btnStep" class="btn btn-accent">⏭ Step</button>
+          <button id="btnContinue" class="btn btn-accent" disabled>⏩ Continue</button>
+          <button id="btnClear" class="btn btn-ghost btn-sm">✕ Clear</button>
+        </div>
+      </div>
+      <div class="editor-wrapper">
+        <div class="line-numbers" id="lineNumbers"></div>
+        <textarea id="codeEditor" class="code-editor" spellcheck="false"
+          placeholder="# Write your LogicFlow program here&#10;ASK FOR marks&#10;IF marks IS GREATER THAN OR EQUAL TO 50&#10;    PRINT &quot;Pass&quot;&#10;ELSE&#10;    PRINT &quot;Fail&quot;&#10;END IF"></textarea>
+      </div>
+    </section>
+
+    <!-- RIGHT: Flowchart -->
+    <section class="panel panel-flowchart">
+      <div class="panel-header">
+        <span class="panel-title">🔀 Flowchart</span>
+        <div class="fc-controls">
+          <button id="btnZoomIn" class="btn btn-ghost btn-sm">+</button>
+          <button id="btnZoomOut" class="btn btn-ghost btn-sm">−</button>
+          <button id="btnFit" class="btn btn-ghost btn-sm">⊞ Fit</button>
+        </div>
+      </div>
+      <div class="flowchart-canvas" id="flowchartCanvas">
+        <div class="fc-placeholder" id="fcPlaceholder">
+          <div class="placeholder-icon">◈</div>
+          <p>Run or Analyze to generate flowchart</p>
+        </div>
+        <div id="mermaidContainer"></div>
+      </div>
+      <!-- Legend -->
+      <div class="fc-legend">
+        <span class="legend-item"><span class="legend-dot dot-start"></span>Start/End</span>
+        <span class="legend-item"><span class="legend-dot dot-process"></span>Process</span>
+        <span class="legend-item"><span class="legend-dot dot-decision"></span>Decision</span>
+        <span class="legend-item"><span class="legend-dot dot-io"></span>Input/Output</span>
+        <span class="legend-item"><span class="legend-dot dot-active"></span>Active</span>
+        <span class="legend-item"><span class="legend-dot dot-visited"></span>Visited</span>
+      </div>
+    </section>
+  </main>
+
+  <!-- INPUT MODAL -->
+  <div class="modal-overlay" id="inputModal" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">📥 Program Input Required</span>
+      </div>
+      <div class="modal-body">
+        <p>Enter value for variable: <strong id="inputVarName"></strong></p>
+        <input type="text" id="inputField" class="modal-input" placeholder="Enter value…" />
+        <p class="input-hint">Numbers are automatically detected. Press Enter to submit.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btnSubmitInput" class="btn btn-primary">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM TABS -->
+  <section class="bottom-panel">
+    <div class="tabs">
+      <button class="tab active" data-tab="output">📋 Output</button>
+      <button class="tab" data-tab="ir">⚙ IR Code</button>
+      <button class="tab" data-tab="tokens">🔤 Tokens</button>
+      <button class="tab" data-tab="ast">🌳 AST</button>
+      <button class="tab" data-tab="errors">⚠ Errors</button>
+    </div>
+    <div class="tab-content">
+      <div id="tab-output" class="tab-pane active">
+        <div class="output-area" id="outputArea">
+          <span class="output-placeholder">Program output will appear here…</span>
+        </div>
+        <div class="exec-status" id="execStatus"></div>
+      </div>
+      <div id="tab-ir" class="tab-pane">
+        <pre class="code-view" id="irView">Run Analyze to see intermediate code…</pre>
+      </div>
+      <div id="tab-tokens" class="tab-pane">
+        <div class="token-grid" id="tokenGrid">Run Analyze to see tokens…</div>
+      </div>
+      <div id="tab-ast" class="tab-pane">
+        <pre class="code-view ast-view" id="astView">Run Analyze to see AST…</pre>
+      </div>
+      <div id="tab-errors" class="tab-pane">
+        <div class="error-list" id="errorList">
+          <span class="output-placeholder">No errors detected.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
